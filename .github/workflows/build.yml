@@ -34,37 +34,11 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" > app/google-services.json
           else
             echo "Warning: GOOGLE_SERVICES_JSON secret not set, using dummy file"
-            cat > app/google-services.json << 'GSEOF'
-            {
-              "project_info": {
-                "project_number": "000000000000",
-                "project_id": "remo-app-dummy",
-                "storage_bucket": "remo-app-dummy.appspot.com"
-              },
-              "client": [
-                {
-                  "client_info": {
-                    "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
-                    "android_client_info": {
-                      "package_name": "com.remo.app"
-                    }
-                  },
-                  "oauth_client": [],
-                  "api_key": [
-                    {
-                      "current_key": "dummy_api_key"
-                    }
-                  ],
-                  "services": {
-                    "appinvite_service": {
-                      "other_platform_oauth_client": []
-                    }
-                  }
-                }
-              ],
-              "configuration_version": "1"
-            }
-            GSEOF
+            printf '%s\n' '{' \
+              '"project_info": {"project_number": "000000000000", "project_id": "remo-app-dummy", "storage_bucket": "remo-app-dummy.appspot.com"},' \
+              '"client": [{"client_info": {"mobilesdk_app_id": "1:000000000000:android:0000000000000000", "android_client_info": {"package_name": "com.remo.app"}}, "oauth_client": [], "api_key": [{"current_key": "dummy_api_key"}], "services": {"appinvite_service": {"other_platform_oauth_client": []}}}],' \
+              '"configuration_version": "1"' \
+              '}' > app/google-services.json
           fi
 
       - name: Grant execute permission for gradlew
