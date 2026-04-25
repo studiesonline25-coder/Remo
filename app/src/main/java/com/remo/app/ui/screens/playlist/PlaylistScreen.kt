@@ -88,8 +88,7 @@ fun PlaylistScreen(
                     OutlinedButton(
                         onClick = { viewModel.toggleFollow() },
                         shape = RoundedCornerShape(50),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = if (uiState.isFollowing) RemoGreen else RemoWhite),
-                        border = ButtonDefaults.outlinedButtonBorder.copy()
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = if (uiState.isFollowing) RemoGreen else RemoWhite)
                     ) {
                         Text(if (uiState.isFollowing) "Following" else "Follow", fontWeight = FontWeight.Bold)
                     }

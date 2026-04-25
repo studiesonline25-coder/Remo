@@ -42,13 +42,13 @@ fun SettingsScreen(
             Text("Settings", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = RemoWhite)
         }
 
-        Divider(color = RemoSurfaceVariant, thickness = 0.5.dp)
+        HorizontalDivider(color = RemoSurfaceVariant, thickness = 0.5.dp)
 
         // Account
         SettingsSectionHeader("Account")
         SettingsRow(title = "Account", subtitle = "Manage your Remo account") {}
 
-        Divider(color = RemoSurfaceVariant, thickness = 0.5.dp)
+        HorizontalDivider(color = RemoSurfaceVariant, thickness = 0.5.dp)
 
         // Notifications
         SettingsSectionHeader("Notifications")
@@ -68,7 +68,7 @@ fun SettingsScreen(
             )
         }
 
-        Divider(color = RemoSurfaceVariant, thickness = 0.5.dp)
+        HorizontalDivider(color = RemoSurfaceVariant, thickness = 0.5.dp)
 
         // Audio Quality
         SettingsSectionHeader("Audio Quality")
@@ -103,7 +103,7 @@ fun SettingsScreen(
             }
         }
 
-        Divider(color = RemoSurfaceVariant, thickness = 0.5.dp)
+        HorizontalDivider(color = RemoSurfaceVariant, thickness = 0.5.dp)
 
         // Crossfade
         SettingsSectionHeader("Crossfade")
@@ -125,7 +125,7 @@ fun SettingsScreen(
             }
         }
 
-        Divider(color = RemoSurfaceVariant, thickness = 0.5.dp)
+        HorizontalDivider(color = RemoSurfaceVariant, thickness = 0.5.dp)
 
         // About
         SettingsSectionHeader("About")

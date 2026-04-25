@@ -13,7 +13,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.remo.app.ui.components.RemoBottomBar
-import com.remo.app.ui.components.MiniPlayer
 import com.remo.app.ui.screens.album.AlbumScreen
 import com.remo.app.ui.screens.artist.ArtistScreen
 import com.remo.app.ui.screens.auth.LoginScreen
@@ -57,7 +56,6 @@ fun RemoNavGraph() {
     val currentRoute = navBackStackEntry?.destination?.route
 
     val showBottomBar = currentRoute in bottomNavScreens.map { it.route }
-    val showMiniPlayer = currentRoute in bottomNavScreens.map { it.route }
 
     Scaffold(
         bottomBar = {
