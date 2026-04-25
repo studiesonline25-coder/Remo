@@ -78,6 +78,21 @@ jobs:
           echo "KEY_PASSWORD=${KEY_PASSWORD:-android}"     >> $GITHUB_ENV
           echo "STORE_PASSWORD=${STORE_PASSWORD:-android}" >> $GITHUB_ENV
 
+      - name: Print SHA certificate fingerprints
+        run: |
+          echo "=== SHA-1 and SHA-256 fingerprints for Firebase ==="
+          keytool -list -v \
+            -keystore remo-release.keystore \
+            -alias "${KEY_ALIAS:-remo-key}" \
+            -storepass "${STORE_PASSWORD:-android}" \
+            -keypass "${KEY_PASSWORD:-android}" \
+            2>/dev/null | grep -E "SHA1:|SHA256:"
+          echo "===================================================="
+        env:
+          KEY_ALIAS: ${{ env.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ env.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ env.STORE_PASSWORD }}
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
