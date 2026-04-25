@@ -102,6 +102,9 @@ dependencies {
     // Palette
     implementation(libs.palette)
 
+    // AppCompat (required for Theme.AppCompat in themes.xml)
+    implementation(libs.appcompat)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
