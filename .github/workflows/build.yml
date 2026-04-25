@@ -1,4 +1,4 @@
-name: Build Remo APK
+name: Build & Release Remo APK
 
 on:
   push:
@@ -9,8 +9,10 @@ on:
 
 jobs:
   build:
-    name: Build Debug APK
+    name: Build Signed Release APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create GitHub Releases
 
     steps:
       - name: Checkout code
@@ -26,6 +28,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      # ── google-services.json ──────────────────────────────────────────────
       - name: Create google-services.json
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
@@ -41,25 +44,85 @@ jobs:
               '}' > app/google-services.json
           fi
 
+      # ── Keystore: decode from secret or generate a fresh one ─────────────
+      - name: Set up signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Using keystore from GitHub Secret"
+            echo "$KEYSTORE_BASE64" | base64 --decode > remo-release.keystore
+          else
+            echo "No KEYSTORE_BASE64 secret found – generating a temporary keystore for this build"
+            keytool -genkeypair \
+              -keystore remo-release.keystore \
+              -alias remo-key \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass android \
+              -keypass android \
+              -dname "CN=Remo, OU=Dev, O=Remo, L=Unknown, ST=Unknown, C=US"
+            # Export so Gradle can read them below
+            echo "KEY_ALIAS=remo-key"      >> $GITHUB_ENV
+            echo "KEY_PASSWORD=android"    >> $GITHUB_ENV
+            echo "STORE_PASSWORD=android"  >> $GITHUB_ENV
+          fi
+          # Make path available to Gradle
+          echo "KEYSTORE_PATH=$PWD/remo-release.keystore" >> $GITHUB_ENV
+          # Fall back to defaults if secrets were empty
+          echo "KEY_ALIAS=${KEY_ALIAS:-remo-key}"          >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${KEY_PASSWORD:-android}"     >> $GITHUB_ENV
+          echo "STORE_PASSWORD=${STORE_PASSWORD:-android}" >> $GITHUB_ENV
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # ── Debug build ───────────────────────────────────────────────────────
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Upload Debug APK
+      - name: Upload Debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Remo-Debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+          retention-days: 14
 
-      - name: Build Release APK (unsigned)
+      # ── Release build (signed) ────────────────────────────────────────────
+      - name: Build Signed Release APK
+        env:
+          KEYSTORE_PATH: ${{ env.KEYSTORE_PATH }}
+          KEY_ALIAS: ${{ env.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ env.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ env.STORE_PASSWORD }}
         run: ./gradlew assembleRelease --stacktrace
 
-      - name: Upload Release APK
+      - name: Upload Release APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Remo-Release-APK
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
-          retention-days: 30
+          path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 14
+
+      # ── GitHub Release (only on push to main, not PRs) ───────────────────
+      - name: Get short commit SHA
+        if: github.event_name != 'pull_request'
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ env.SHORT_SHA }}
+          name: "Remo build-${{ env.SHORT_SHA }}"
+          body: |
+            Automated release from commit `${{ github.sha }}`
+
+            **Install:** Download `Remo-release.apk` below and install on your Android device.
+            > Make sure "Install from unknown sources" is enabled in your device settings.
+          files: app/build/outputs/apk/release/app-release.apk
+          fail_on_unmatched_files: true
